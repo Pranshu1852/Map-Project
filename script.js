@@ -32,26 +32,13 @@ class Mapclass{
         })
 
         document.querySelector('.sidebar').addEventListener('click',(event)=>{
-            if(event.target.className==='icon--search'){
-                if(this.currentButton){
-                    this.closePopup(document.querySelector(this.currentButton));
-                }
-                this.currentButton='.leaflet-touch .leaflet-control-geocoder';
-                this.openPopup(document.querySelector('.leaflet-touch .leaflet-control-geocoder'));
-            }
-            else if(event.target.className==='icon--favourite'){
-                if(this.currentButton){
-                    this.closePopup(document.querySelector(this.currentButton));
-                }
-                this.currentButton='.favourite__container';
-                console.log(this.currentButton);
-                
-                this.openPopup(document.querySelector('.favourite__container'),'grid');
-            }
-            else{
-                if(this.currentButton&&!event.target.className==='.favourite__container'){
-                    this.closePopup(document.querySelector(this.currentButton));
-                }
+            // console.log(event.target.closest('button'));
+            
+            if(event.target.closest('button')&&event.target.closest('button').getAttribute('data-popup')){
+                const element=document.querySelector(event.target.closest('button').getAttribute('data-popup'));
+                // element.classList.toggle('active');
+                element.style.display==='none'?'flex':'none';
+                console.log(element);
             }
         })
     }
@@ -91,6 +78,15 @@ class Mapclass{
         })
     }
 
+    renderFaviouritePlaces(){
+        const faviouritePlaces=this.placeArray.filter((item)=>{
+            return item.faviourite;
+        });
+
+        console.log(faviouritePlaces);
+        
+    }
+
     showPlaces(){
         this.placeArray.forEach((item)=>{
             L.marker([item.latitude, item.longitude], {icon: icons.blueIcon}).addTo(this.map).bindPopup(`
@@ -101,15 +97,22 @@ class Mapclass{
                         <h2 class="placecard__placestatus">Status: <span>${item.placestatus}</span></h2>
                         <h2 class="placecard__placeaddress">Address: <span>${item.placeaddress}</span></h2>
                     </div>
-                    <button data-id=${item.id} class="btn--direction">Direction</button>
+                    <div class="placecard__buttons">
+                        <button data-id=${item.id} class="btn--direction">Direction</button>
+                        <button data-id=${item.id} class="btn--addfaviourite ${item.faviourite?'checkedFaviourite--btn':''}"><svg class="icon--favourite ${item.faviourite?'checkedFaviourite--icon':''}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.0" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
+                          </svg></button>
+                    </div>
                 </div>
                 `);
         })
 
 
         this.map.on('popupopen', (event)=>{
+            console.log(event.target);
+            
             document.querySelectorAll('.btn--direction').forEach((element)=>{
-                // console.log(element);
+                console.log(element);
                 
                 element.addEventListener('click',(event)=>{
                     if(event.target.getAttribute('data-id')){
@@ -123,7 +126,31 @@ class Mapclass{
                     // console.log(placeItem);
                     this.map.closePopup();
                 })
-            }) 
+            })
+            
+            document.querySelectorAll('.btn--addfaviourite').forEach((element)=>{
+                console.log(element);
+                
+                element.addEventListener('click',(event)=>{
+                    event.preventDefault();
+                    console.log(element);
+                    if(element.getAttribute('data-id')){
+                        const placeItem=this.getPlace(+element.getAttribute('data-id'));
+                        placeItem.faviourite=!placeItem.faviourite;
+                        if(!placeItem.faviourite){
+                            console.log(element);
+                            
+                            element.classList.remove('checkedFaviourite--btn');
+                            element.querySelector('svg').classList.remove('checkedFaviourite--icon')
+                        }
+                        else{
+                            element.classList.add('checkedFaviourite--btn');
+                            element.querySelector('svg').classList.add('checkedFaviourite--icon')
+                        }
+                        this.updatePlace(placeItem.id,placeItem);   
+                    }
+                })
+            })
         })
     }
 
@@ -142,9 +169,12 @@ class Mapclass{
             ],
             routeWhileDragging: true
         }).addTo(this.map);
+        this.openPopup(document.querySelector('.close--route'));
 
         document.getElementsByClassName('close--route')[0].addEventListener('click',(event)=>{
+            this.map.removeControl(layer);
             this.resetMap();
+            this.closePopup(document.querySelector('.close--route'));
         })
     }
 
@@ -157,6 +187,19 @@ class Mapclass{
         });
         this.placeArray=await response.json();
         this.showPlaces();
+    }
+
+    async updatePlace(id,placeItem){
+        let response=await fetch(`http://localhost:3000/places/${id}`,{
+            method: 'PUT',
+            headers:{
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(placeItem)
+        })
+        
+        // console.log(response);
+        
     }
 
     resetMap(){
