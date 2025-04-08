@@ -73,22 +73,32 @@ body {
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.103);
 }
 
-.btn--search,.btn--favourite{
+
+
+.btn--search,.btn--addplace,.btn--favourite,.btn--setting{
     width: 40px;
     height: 40px;
     background-color: transparent;
     border: 2px solid black;
     border-radius: 50%;
 }
-.btn--favourite{
+.btn--favourite,.btn--setting{
     border: none;
 }
 
-.icon--search,.icon--favourite{
+.btn--favourite.active{
+    display: grid;
+}
+
+.btn--addplace{
+    border-radius: 10px;
+}
+
+.icon--search,.icon--add,.icon--favourite,.icon--setting{
     width: 25px;
 }
 
-.icon--favourite{
+.icon--favourite,.icon--setting{
     width: 30px;
 }
 
@@ -228,9 +238,16 @@ body {
     color: gray;
 }
 
+.placecard__buttons{
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+}
+
 .btn--direction{
     color: white;
     background-color: #2778ec;
+    width: 100%;
     padding: 10px 20px;
     border: none;
     border-radius: 10px;
@@ -240,7 +257,24 @@ body {
     cursor: pointer;
 }
 
+.btn--addfaviourite{
+    padding: 10px 15px;
+    background-color: white;
+    border: 2px solid black;
+    border-radius: 10px;
+}
+
+.checkedFaviourite--btn{
+    border: 2px solid #2778ec;
+}
+
+.checkedFaviourite--icon{
+    fill: #2778ec;
+    color: #2778ec;
+}
+
 .close--route{
+    display: none;
     padding: 20px;
     background-color: black;
     color: white;
@@ -296,12 +330,16 @@ button:active{
     transition-duration: 0.2s;
 }
 
+.active{
+    display: flex;
+}
 
 
 @media (max-width: 768px) {
     .sidebar{
         flex-direction: row;
-        justify-content: center;
+        justify-content: space-around;
+        align-items: center;
         gap: 20px;
         height: 70px;
         width: 90%;
